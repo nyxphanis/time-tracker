@@ -1,78 +1,53 @@
 import tkinter as tk
-from tkinter import messagebox, filedialog
-import pandas as pd
+from utils import load_data, round_minutes, export_report, update_total_hours
 from datetime import datetime
+import pandas as pd
 
-# Data Storage File
 DATA_FILE = "time_tracking_data.csv"
 
-# Initialize Data
-try:
-    data = pd.read_csv(DATA_FILE)
-except FileNotFoundError:
-    data = pd.DataFrame(columns=["Task", "Start", "End"])
+class TimeTrackerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Time Tracker v1")
+        self.data = load_data(DATA_FILE)
+        self.start_time = None
 
-# Start Task Function
-def start_task():
-    global start_time
-    task_name = task_entry.get()
-    if not task_name:
-        messagebox.showerror("Error", "Task name is required!")
-        return
-    start_time = datetime.now()
-    task_label.config(text=f"Task: {task_name}")
-    status_label.config(text="Status: Running")
-    start_button.config(state="disabled")
-    stop_button.config(state="normal")
+        # GUI Components
+        self.task_entry = tk.Entry(root, width=30)
+        self.task_entry.pack()
+        self.start_button = tk.Button(root, text="Start Task", command=self.start_task)
+        self.start_button.pack()
+        self.stop_button = tk.Button(root, text="Stop Task", command=self.stop_task, state="disabled")
+        self.stop_button.pack()
+        self.export_button = tk.Button(root, text="Export Report", command=lambda: export_report(self.data))
+        self.export_button.pack()
 
-# Stop Task Function
-def stop_task():
-    global start_time
-    if start_time is None:
-        messagebox.showerror("Error", "No task is running!")
-        return
-    end_time = datetime.now()
-    task_name = task_entry.get()
-    global data
-    data = pd.concat([data, pd.DataFrame([{
-        "Task": task_name,
-        "Start": start_time,
-        "End": end_time
-    }])])
-    data.to_csv(DATA_FILE, index=False)
-    task_label.config(text="Task: None")
-    status_label.config(text="Status: Stopped")
-    start_button.config(state="normal")
-    stop_button.config(state="disabled")
+    def start_task(self):
+        task_name = self.task_entry.get()
+        if not task_name:
+            tk.messagebox.showerror("Error", "Please enter a task name.")
+            return
+        self.start_time = datetime.now()
 
-# Export Report
-def export_report():
-    save_path = filedialog.asksaveasfilename(defaultextension=".csv",
-                                             filetypes=[("CSV files", "*.csv")])
-    if save_path:
-        data.to_csv(save_path, index=False)
-        messagebox.showinfo("Export", "Report exported successfully!")
+    def stop_task(self):
+        if self.start_time is None:
+            tk.messagebox.showerror("Error", "No task is running.")
+            return
+        end_time = datetime.now()
+        task_name = self.task_entry.get()
+        time_diff = end_time - self.start_time
+        rounded_minutes = round_minutes(time_diff)
+        new_task = pd.DataFrame([{"Task": task_name, "Start": self.start_time, "End": end_time, "Duration (Minutes)": rounded_minutes}])
+        self.data = pd.concat([self.data, new_task])
+        self.data.to_csv(DATA_FILE, index=False)
+        self.start_time = None
 
-# GUI Setup
-app = tk.Tk()
-app.title("Time Tracking App")
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = TimeTrackerApp(root)
+    root.mainloop()
 
-task_label = tk.Label(app, text="Task: None")
-task_label.pack()
-
-status_label = tk.Label(app, text="Status: Stopped")
-status_label.pack()
-
-task_entry = tk.Entry(app, width=30)
-task_entry.pack()
-
-start_button = tk.Button(app, text="Start Task", command=start_task)
-start_button.pack()
-
-stop_button = tk.Button(app, text="Stop Task", command=stop_task, state="disabled")
-stop_button.pack()
-
-export_button = tk.Button(app, text="Export Report", command=export_report)
-export_button.pack()
-
-app.mainloop()
+def run():
+    root = tk.Tk()
+    app = TimeTrackerApp(root)
+    root.mainloop()
