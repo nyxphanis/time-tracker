@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['time_tracker_final.py'],
+    ['time_tracker_xls_date_sum.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='time_tracker_final',
+    name='time_tracker_xls_date_sum',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
