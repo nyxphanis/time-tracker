@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QDialog,
     QFormLayout,
-    QDateEdit
+    QDateEdit,
 )
 from PyQt5.QtCore import QTimer, QDate
 from datetime import datetime
@@ -72,11 +72,15 @@ class ExportDialog(QDialog):
         layout.addRow(self.export_button)
         self.setLayout(layout)
 
-    def get_date_range(self):
-        date_from = self.date_from_edit.date().toPyDate()
-        date_to = self.date_to_edit.date().toPyDate()
-        return date_from, date_to
+   # def get_date_range(self):
+       # date_from = self.date_from_edit.date().toPyDate()
+       # date_to = self.date_to_edit.date().toPyDate()
+       # return date_from, date_to
 
+    def get_date_range(self):
+        date_from = self.date_from_edit.dateTime()
+        date_to = self.date_to_edit.dateTime()
+        return date_from, date_to
 
 class TimeTrackerApp(QWidget):
     def __init__(self):
@@ -120,6 +124,7 @@ class TimeTrackerApp(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
+        print("Existing DataFrame:\n", self.data)
 
     def apply_styles(self):
         self.setStyleSheet(
@@ -163,11 +168,14 @@ class TimeTrackerApp(QWidget):
         self.stop_button.setEnabled(True)
         self.start_button.setText("Tracking...")
         self.start_button.setStyleSheet("background-color: #4CAF50;")
+        print(f"START {datetime.now()}")
+
 
     def stop_task(self):
         if self.start_time is None:
             QMessageBox.critical(self, "Error", "No task is running.")
             return
+        print(f"STOP {datetime.now()}")
 
         end_time = datetime.now()
         time_diff = end_time - self.start_time
@@ -191,6 +199,7 @@ class TimeTrackerApp(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save data: {e}")
             return
+        print(f"SAVE {datetime.now()}")
 
         self.start_time = None
         self.status_label.setText("Status: Not Tracking")
@@ -202,21 +211,27 @@ class TimeTrackerApp(QWidget):
         export_dialog = ExportDialog(self)
         result = export_dialog.exec_()  # Show the dialog modally
 
+
         if result == QDialog.Accepted:
             date_from, date_to = export_dialog.get_date_range()
-
+            print(f"EXPORT HOURS {datetime.now()}")
             # Filter data based on the selected date range
+            self.data["Start"] = pd.to_datetime(self.data["Start"], errors="coerce")
             filtered_data = self.data[
-                (self.data["Start"].dt.date >= date_from) & (self.data["Start"].dt.date <= date_to)
+               # (self.data["Start"].dt.date >= date_from) & (self.data["Start"].dt.date <= date_to)
+                (self.data["Start"].dt.date >= date_from.date()) & (self.data["Start"].dt.date <= date_to.date())
                 ]
+            print(f"EXPORT HOURS {datetime.now()}")
 
             # Check if filtered data is empty
             if filtered_data.empty:
                 QMessageBox.warning(self, "No Data", "No entries found for the selected dates.")
                 return  # Stop further execution
 
+
             # Calculate total hours
             total_hours = filtered_data["Duration"].sum()
+
 
             save_path, _ = QFileDialog.getSaveFileName(
                 self, "Save Report", "", "Excel files (*.xlsx *.xlsm)"
