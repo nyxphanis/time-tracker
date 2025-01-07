@@ -125,7 +125,8 @@ class TimeTrackerApp(QWidget):
         )
 
     def update_time(self):
-        """Update the time label every second."""
+        """Update
+         time label every second."""
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.time_label.setText(f"Current Time: {current_time}")
 
@@ -134,7 +135,7 @@ class TimeTrackerApp(QWidget):
         self.status_label.setText("Status: Tracking...")
         self.stop_button.setEnabled(True)
         self.start_button.setText("Tracking...")  # Update button text
-        self.start_button.setStyleSheet("background-color: #e68a2e;")  # Change color
+        self.start_button.setStyleSheet("background-color: #4CAF50;")  # Change color to green
 
     def stop_task(self):
         if self.start_time is None:
@@ -144,7 +145,7 @@ class TimeTrackerApp(QWidget):
         end_time = datetime.now()
         time_diff = end_time - self.start_time
 
-        # Calculate fractional hours directly from time_diff
+        # Calculate fractional hours from time_diff
         fractional_hours = round(time_diff.total_seconds() / 3600, 2)
 
         # Define session data
@@ -174,17 +175,10 @@ class TimeTrackerApp(QWidget):
         self.status_label.setText("Status: Not Tracking")
         self.stop_button.setEnabled(False)
         self.start_button.setText("Start Task")  # Reset button text
-        self.start_button.setStyleSheet(
-            """
-            QPushButton {
-                background-color: #F1A337;
-                /* ... (other styles) */
-            }
-            QPushButton:hover {
-                background-color: #e68a2e;
-            }
-        """
-        )  # Reset color
+        self.start_button.setStyleSheet("background-color: #F1A337;")  # Change color
+
+
+
 
     def export_report(self):
         """Exports the report to a CSV file."""
