@@ -24,7 +24,7 @@ DATA_FILE = "time_tracking_data.csv"
 
 
 def load_data(data_file):
-    """Loads tracking data from CSV or creates an empty DataFrame."""
+    #Loads tracking data from CSV or creates an empty DataFrame.
     required_columns = {
         "User": pd.StringDtype(),
         "Start": "datetime64[ns]",
@@ -72,14 +72,19 @@ class ExportDialog(QDialog):
         layout.addRow(self.export_button)
         self.setLayout(layout)
 
-   # def get_date_range(self):
-       # date_from = self.date_from_edit.date().toPyDate()
-       # date_to = self.date_to_edit.date().toPyDate()
-       # return date_from, date_to
+    #def get_date_range(self):
+        #date_from = self.date_from_edit.date().toPyDate()
+        #date_to = self.date_to_edit.date().toPyDate()
+        #return date_from, date_to
+
+    #def get_date_range(self):
+      #  date_from = self.date_from_edit.dateTime()
+      #  date_to = self.date_to_edit.dateTime()
+      #  return date_from, date_to
 
     def get_date_range(self):
-        date_from = self.date_from_edit.dateTime()
-        date_to = self.date_to_edit.dateTime()
+        date_from = self.date_from_edit.date()
+        date_to = self.date_to_edit.date()
         return date_from, date_to
 
 class TimeTrackerApp(QWidget):
@@ -124,41 +129,38 @@ class TimeTrackerApp(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
-        print("Existing DataFrame:\n", self.data)
+
 
     def apply_styles(self):
-        self.setStyleSheet(
-            """
-            QWidget {
-                background-color: #F7F7F7;
-                border-radius: 10px;
-            }
-            QPushButton {
-                background-color: #F1A337;
-                color: white;
-                border: 2px solid #F1A337;
-                border-radius: 10px;
-                padding: 10px;
-                font-size: 16px;
-                margin: 5px;
-            }
-            QPushButton:hover {
-                background-color: #e68a2e;
-            }
-            QLabel {
-                font-size: 18px;
-                color: #333;
-                font-weight: bold;
-            }
-
-            QVBoxLayout {
-                margin: 20px;
-            }
-        """
-        )
+        self.setStyleSheet('''
+        QWidget {
+            background-color: #F7F7F7;
+            border-radius: 10px;
+        }
+        QPushButton {
+            background-color: #F1A337;
+            color: white;
+            border: 2px solid #F1A337;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+        }
+        QPushButton:hover {
+            background-color: #e68a2e;
+        }
+        QLabel {
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+        QVBoxLayout {
+            margin: 20px;
+        }
+        ''')
 
     def update_time(self):
-        """Update time label every second."""
+        # Update time label every second.
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.time_label.setText(f"Current Time: {current_time}")
 
@@ -197,7 +199,7 @@ class TimeTrackerApp(QWidget):
         try:
             self.data.to_csv(DATA_FILE, index=False)
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to save data: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to save data to {DATA_FILE}: {e}")
             return
         print(f"SAVE {datetime.now()}")
 
@@ -217,10 +219,16 @@ class TimeTrackerApp(QWidget):
             print(f"EXPORT HOURS {datetime.now()}")
             # Filter data based on the selected date range
             self.data["Start"] = pd.to_datetime(self.data["Start"], errors="coerce")
-            filtered_data = self.data[
+            #filtered_data = self.data[
                # (self.data["Start"].dt.date >= date_from) & (self.data["Start"].dt.date <= date_to)
-                (self.data["Start"].dt.date >= date_from.date()) & (self.data["Start"].dt.date <= date_to.date())
+               # (self.data["Start"].dt.date >= date_from.date()) & (self.data["Start"].dt.date <= date_to.date())
+               # ]
+            filtered_data = self.data[
+                (self.data["Start"].dt.date >= date_from.toPyDate()) &
+                (self.data["Start"].dt.date <= date_to.toPyDate())
                 ]
+            print(f"Date From: {type(date_from)}, Value: {date_from}")
+            print(f"Date To: {type(date_to)}, Value: {date_to}")
             print(f"EXPORT HOURS {datetime.now()}")
 
             # Check if filtered data is empty
