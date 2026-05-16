@@ -34,6 +34,14 @@ def app_dir():
 DATA_FILE = app_dir() / "time_tracking_data.csv"
 
 
+def format_elapsed(seconds):
+    """Format seconds as HH:MM:SS."""
+    total = int(seconds)
+    hours, remainder = divmod(total, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
+
 def load_data(data_file):
     """Load sessions from CSV, or start empty. Adds Task column for older files."""
     required_columns = {
@@ -181,7 +189,7 @@ class TimeTrackerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Time Tracker v2")
-        self.setFixedSize(400, 300)
+        self.setFixedSize(400, 320)
         self.data = load_data(DATA_FILE)
         self.start_time = None
         self.username = os.getlogin()
@@ -191,6 +199,7 @@ class TimeTrackerApp(QWidget):
         self.stop_button = QPushButton("Stop Task", self)
         self.export_button = QPushButton("Export Report", self)
         self.status_label = QLabel("Status: Not Tracking", self)
+        self.elapsed_label = QLabel("Elapsed: —", self)
         self.time_label = QLabel("", self)
         self.username_label = QLabel(f"User: {self.username}", self)
 
@@ -200,6 +209,7 @@ class TimeTrackerApp(QWidget):
         layout.addWidget(self.stop_button)
         layout.addWidget(self.export_button)
         layout.addWidget(self.status_label)
+        layout.addWidget(self.elapsed_label)
         layout.addWidget(self.time_label)
         layout.addWidget(self.username_label)
         self.setLayout(layout)
@@ -274,9 +284,14 @@ class TimeTrackerApp(QWidget):
         ''')
 
     def update_time(self):
-        # Update time label every second.
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.time_label.setText(f"Current Time: {current_time}")
+
+        if self.start_time is not None:
+            elapsed_sec = (datetime.now() - self.start_time).total_seconds()
+            self.elapsed_label.setText(f"Elapsed: {format_elapsed(elapsed_sec)}")
+        else:
+            self.elapsed_label.setText("Elapsed: —")
 
     def closeEvent(self, event):
         # Stop the timer so Qt can exit cleanly (avoids noisy exit on Windows).
@@ -290,6 +305,7 @@ class TimeTrackerApp(QWidget):
 
         self.start_time = datetime.now()
         self.status_label.setText("Status: Tracking...")
+        self.elapsed_label.setText("Elapsed: 00:00:00")
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.start_button.setText("Tracking...")
@@ -335,6 +351,7 @@ class TimeTrackerApp(QWidget):
 
         self.start_time = None
         self.status_label.setText("Status: Not Tracking")
+        self.elapsed_label.setText("Elapsed: —")
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.start_button.setText("Start Task")
