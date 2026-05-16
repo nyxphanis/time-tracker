@@ -60,3 +60,7 @@ If the build fails on Qt plugins, try:
 ## Git
 
 Not tracked (see `.gitignore`): `.venv/`, `build/`, `dist/`, `time_tracking_data.csv`, `.idea/`
+
+## License
+
+Copyright © 2026 [thestrategicnexus](https://github.com/thestrategicnexus). Released under the [MIT License](LICENSE).
