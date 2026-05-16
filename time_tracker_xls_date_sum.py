@@ -59,6 +59,42 @@ class ExportDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Export Report")
+        self.setStyleSheet("""
+            QDialog { background-color: #F7F7F7; }
+            QLabel { font-size: 13px; color: #333333; font-weight: bold; }
+            QDateEdit {
+                color: #333333;
+                background-color: #FFFFFF;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px 8px;
+                font-size: 13px;
+            }
+            QCalendarWidget {
+                background-color: #FFFFFF;
+                color: #333333;
+            }
+            QCalendarWidget QWidget#qt_calendar_navigationbar {
+                background-color: #F7F7F7;
+                color: #333333;
+            }
+            QCalendarWidget QAbstractItemView:enabled {
+                color: #333333;
+                background-color: #FFFFFF;
+                selection-background-color: #F1A337;
+                selection-color: #FFFFFF;
+            }
+            QPushButton {
+                background-color: #F1A337;
+                color: white;
+                border: 1px solid #F1A337;
+                border-radius: 6px;
+                padding: 5px 14px;
+                font-size: 13px;
+                min-height: 26px;
+            }
+            QPushButton:hover { background-color: #e68a2e; }
+        """)
 
         # Date From
         self.date_from_label = QLabel("Date From:")
@@ -216,7 +252,7 @@ class TimeTrackerApp(QWidget):
             color: #333333;
             font-weight: bold;
         }
-        QLineEdit {
+        QLineEdit, QDateEdit {
             color: #333333;
             background-color: #FFFFFF;
             border: 1px solid #CCCCCC;
@@ -226,6 +262,16 @@ class TimeTrackerApp(QWidget):
             font-weight: normal;
             selection-color: #FFFFFF;
             selection-background-color: #F1A337;
+        }
+        QCalendarWidget {
+            background-color: #FFFFFF;
+            color: #333333;
+        }
+        QCalendarWidget QAbstractItemView:enabled {
+            color: #333333;
+            background-color: #FFFFFF;
+            selection-background-color: #F1A337;
+            selection-color: #FFFFFF;
         }
         QDialog {
             background-color: #F7F7F7;
@@ -302,6 +348,14 @@ class TimeTrackerApp(QWidget):
 
         if result == QDialog.DialogCode.Accepted:
             date_from, date_to = export_dialog.get_date_range()
+            if date_from.toPyDate() > date_to.toPyDate():
+                QMessageBox.warning(
+                    self,
+                    "Invalid dates",
+                    "Date From must be on or before Date To.",
+                )
+                return
+
             print(f"EXPORT HOURS {datetime.now()}")
             # Filter data based on the selected date range
             self.data["Start"] = pd.to_datetime(self.data["Start"], errors="coerce")
