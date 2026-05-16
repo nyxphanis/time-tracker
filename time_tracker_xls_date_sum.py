@@ -24,16 +24,18 @@ from openpyxl.styles import Protection
 from openpyxl.utils import get_column_letter
 
 def app_dir():
+    """Folder containing the app (source file or PyInstaller executable)."""
     if getattr(sys, "frozen", False):
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parent
 
 
+# CSV lives next to the script or .exe (see app_dir), not the shell's working folder.
 DATA_FILE = app_dir() / "time_tracking_data.csv"
 
 
 def load_data(data_file):
-    #Loads tracking data from CSV or creates an empty DataFrame.
+    """Load sessions from CSV, or start empty. Adds Task column for older files."""
     required_columns = {
         "User": pd.StringDtype(),
         "Start": "datetime64[ns]",
@@ -118,16 +120,6 @@ class ExportDialog(QDialog):
         layout.addRow(self.date_to_label, self.date_to_edit)
         layout.addRow(self.export_button)
         self.setLayout(layout)
-
-    #def get_date_range(self):
-        #date_from = self.date_from_edit.date().toPyDate()
-        #date_to = self.date_to_edit.date().toPyDate()
-        #return date_from, date_to
-
-    #def get_date_range(self):
-      #  date_from = self.date_from_edit.dateTime()
-      #  date_to = self.date_to_edit.dateTime()
-      #  return date_from, date_to
 
     def get_date_range(self):
         date_from = self.date_from_edit.date()
@@ -287,6 +279,7 @@ class TimeTrackerApp(QWidget):
         self.time_label.setText(f"Current Time: {current_time}")
 
     def start_task(self):
+        # Ignore extra clicks while a session is already running.
         if self.start_time is not None:
             return
 
@@ -400,6 +393,7 @@ class TimeTrackerApp(QWidget):
 
 
 def export_to_protected_excel(data, total_hours, save_path):
+    """Write filtered sessions to Excel with a total row and sheet protection."""
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Time Tracking Report"
