@@ -1,18 +1,20 @@
 import sys
 import os
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
     QLabel,
     QVBoxLayout,
+    QHBoxLayout,
     QPushButton,
     QMessageBox,
     QFileDialog,
     QDialog,
     QFormLayout,
     QDateEdit,
+    QLineEdit,
 )
-from PyQt5.QtCore import QTimer, QDate
+from PyQt6.QtCore import QTimer, QDate
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -29,7 +31,8 @@ def load_data(data_file):
         "User": pd.StringDtype(),
         "Start": "datetime64[ns]",
         "End": "datetime64[ns]",
-        "Duration": np.float64
+        "Duration": np.float64,
+        "Task": pd.StringDtype(),
     }
     try:
         data = pd.read_csv(data_file)
@@ -38,7 +41,8 @@ def load_data(data_file):
                 data[col] = pd.Series(dtype=dtype)
         data["Start"] = pd.to_datetime(data["Start"], errors="coerce")
         data["End"] = pd.to_datetime(data["End"], errors="coerce")
-        data = data[required_columns.keys()]
+        data["Task"] = data["Task"].fillna("").astype(pd.StringDtype())
+        data = data[list(required_columns.keys())]
     except (FileNotFoundError, pd.errors.ParserError):
         data = pd.DataFrame(columns=required_columns.keys()).astype(required_columns)
     return data
@@ -86,6 +90,35 @@ class ExportDialog(QDialog):
         date_from = self.date_from_edit.date()
         date_to = self.date_to_edit.date()
         return date_from, date_to
+
+
+class StopTaskDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Stop Task")
+        self.setMinimumWidth(360)
+
+        self.task_label = QLabel("Task (optional):")
+        self.task_edit = QLineEdit()
+        self.task_edit.setPlaceholderText("What did you work on?")
+
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.accept)
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.clicked.connect(self.reject)
+
+        buttons = QHBoxLayout()
+        buttons.addWidget(self.cancel_button)
+        buttons.addWidget(self.save_button)
+
+        layout = QFormLayout()
+        layout.addRow(self.task_label, self.task_edit)
+        layout.addRow(buttons)
+        self.setLayout(layout)
+
+    def get_task(self):
+        return self.task_edit.text().strip()
+
 
 class TimeTrackerApp(QWidget):
     def __init__(self):
@@ -177,6 +210,11 @@ class TimeTrackerApp(QWidget):
         if self.start_time is None:
             QMessageBox.critical(self, "Error", "No task is running.")
             return
+
+        dialog = StopTaskDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
         print(f"STOP {datetime.now()}")
 
         end_time = datetime.now()
@@ -190,6 +228,7 @@ class TimeTrackerApp(QWidget):
                     "Start": self.start_time.strftime("%Y-%m-%d %H:%M:%S"),
                     "End": end_time.strftime("%Y-%m-%d %H:%M:%S"),
                     "Duration": fractional_hours,
+                    "Task": dialog.get_task(),
                 }
             ]
         )
@@ -211,10 +250,9 @@ class TimeTrackerApp(QWidget):
 
     def export_report(self):
         export_dialog = ExportDialog(self)
-        result = export_dialog.exec_()  # Show the dialog modally
+        result = export_dialog.exec()
 
-
-        if result == QDialog.Accepted:
+        if result == QDialog.DialogCode.Accepted:
             date_from, date_to = export_dialog.get_date_range()
             print(f"EXPORT HOURS {datetime.now()}")
             # Filter data based on the selected date range
@@ -273,8 +311,11 @@ def export_to_protected_excel(data, total_hours, save_path):
         sheet.append(list(row))
 
     # Add total hours row
-    total_row_num = len(data) + 2  # Get the row number after the last data row
-    sheet.append(["Total Hours:", "", "", total_hours])  # Add a new row with total hours
+    total_row = [""] * len(headers)
+    total_row[0] = "Total Hours:"
+    if "Duration" in headers:
+        total_row[headers.index("Duration")] = total_hours
+    sheet.append(total_row)
 
     # Formatting
     for col in range(1, len(headers) + 1):
@@ -298,4 +339,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = TimeTrackerApp()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
