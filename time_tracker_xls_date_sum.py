@@ -234,8 +234,12 @@ class TimeTrackerApp(QWidget):
         self.time_label.setText(f"Current Time: {current_time}")
 
     def start_task(self):
+        if self.start_time is not None:
+            return
+
         self.start_time = datetime.now()
         self.status_label.setText("Status: Tracking...")
+        self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.start_button.setText("Tracking...")
         self.start_button.setStyleSheet("background-color: #4CAF50;")
@@ -280,6 +284,7 @@ class TimeTrackerApp(QWidget):
 
         self.start_time = None
         self.status_label.setText("Status: Not Tracking")
+        self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.start_button.setText("Start Task")
         self.start_button.setStyleSheet("background-color: #F1A337;")
