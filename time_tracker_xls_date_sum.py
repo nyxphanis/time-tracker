@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -22,7 +23,13 @@ from openpyxl import Workbook
 from openpyxl.styles import Protection
 from openpyxl.utils import get_column_letter
 
-DATA_FILE = "time_tracking_data.csv"
+def app_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+DATA_FILE = app_dir() / "time_tracking_data.csv"
 
 
 def load_data(data_file):
