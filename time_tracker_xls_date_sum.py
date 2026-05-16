@@ -278,6 +278,11 @@ class TimeTrackerApp(QWidget):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.time_label.setText(f"Current Time: {current_time}")
 
+    def closeEvent(self, event):
+        # Stop the timer so Qt can exit cleanly (avoids noisy exit on Windows).
+        self.timer.stop()
+        event.accept()
+
     def start_task(self):
         # Ignore extra clicks while a session is already running.
         if self.start_time is not None:
