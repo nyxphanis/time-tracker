@@ -96,7 +96,29 @@ class StopTaskDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Stop Task")
-        self.setMinimumWidth(360)
+        self.setMinimumWidth(320)
+        self.setStyleSheet("""
+            QDialog { background-color: #F7F7F7; }
+            QLabel { font-size: 13px; color: #333333; font-weight: bold; }
+            QLineEdit {
+                color: #333333;
+                background-color: #FFFFFF;
+                border: 1px solid #CCCCCC;
+                border-radius: 4px;
+                padding: 6px 8px;
+                font-size: 13px;
+            }
+            QPushButton {
+                background-color: #F1A337;
+                color: white;
+                border: 1px solid #F1A337;
+                border-radius: 6px;
+                padding: 5px 14px;
+                font-size: 13px;
+                min-height: 26px;
+            }
+            QPushButton:hover { background-color: #e68a2e; }
+        """)
 
         self.task_label = QLabel("Task (optional):")
         self.task_edit = QLineEdit()
@@ -124,7 +146,7 @@ class TimeTrackerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Time Tracker v2")
-        self.setFixedSize(400, 350)
+        self.setFixedSize(400, 300)
         self.data = load_data(DATA_FILE)
         self.start_time = None
         self.username = os.getlogin()
@@ -168,27 +190,41 @@ class TimeTrackerApp(QWidget):
         self.setStyleSheet('''
         QWidget {
             background-color: #F7F7F7;
-            border-radius: 10px;
         }
         QPushButton {
             background-color: #F1A337;
             color: white;
-            border: 2px solid #F1A337;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 16px;
-            margin: 5px;
+            border: 1px solid #F1A337;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 14px;
+            margin: 3px;
+            min-height: 28px;
         }
         QPushButton:hover {
             background-color: #e68a2e;
         }
         QLabel {
-            font-size: 18px;
-            color: #333;
+            font-size: 14px;
+            color: #333333;
             font-weight: bold;
         }
+        QLineEdit {
+            color: #333333;
+            background-color: #FFFFFF;
+            border: 1px solid #CCCCCC;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 14px;
+            font-weight: normal;
+            selection-color: #FFFFFF;
+            selection-background-color: #F1A337;
+        }
+        QDialog {
+            background-color: #F7F7F7;
+        }
         QVBoxLayout {
-            margin: 20px;
+            margin: 12px;
         }
         ''')
 
